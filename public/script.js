@@ -246,44 +246,6 @@ function displayResults(results) {
     }
 }
 
-// Backend Code
-const axios = require('axios');
-const cheerio = require('cheerio');
 
-async function scrapeAmazon(productName) {
-    const url = `https://www.amazon.com/s?k=${encodeURIComponent(productName)}`;
-    const headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'
-    };
 
-    try {
-        const response = await axios.get(url, { headers });
-        const $ = cheerio.load(response.data);
-        const products = [];
 
-        $('.s-result-item').each((index, element) => {
-            const title = $(element).find('span.a-size-medium.a-color-base.a-text-normal').text().trim() || 'N/A';
-            const symbol = $(element).find('span.a-price-symbol').text().trim() || '';
-            const newPriceWhole = $(element).find('span.a-price-whole').text().trim();
-            const newPriceFraction = $(element).find('span.a-price-fraction').text().trim();
-            const newPrice = newPriceWhole ? symbol + newPriceWhole + newPriceFraction : 'N/A';
-            const oldPrice = $(element).find('span.a-text-price span.a-offscreen').text().trim() || 'N/A';
-            const oldPriceFormatted = oldPrice ? symbol + oldPrice : 'N/A'; // Ensure it's formatted correctly
-            const link = $(element).find('a.a-link-normal').attr('href');
-
-            if (title && link) {
-                products.push({
-                    title,
-                    price: newPrice,
-                    priceBeforeDiscount: oldPriceFormatted,
-                    link: `https://www.amazon.com${link}`
-                });
-            }
-        });
-
-        return products;
-    } catch (error) {
-        console.error('Error scraping Amazon:', error);
-        return [];
-    }
-}
